@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         setupMap()
     }
-
+//hello
     override fun onPause() {
         mapView.pause()
         super.onPause()
