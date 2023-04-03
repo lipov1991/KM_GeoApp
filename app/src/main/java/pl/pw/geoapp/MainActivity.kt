@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         mapView.map = map
 
         // set the viewpoint, Viewpoint(latitude, longitude, scale)
-        mapView.setViewpoint(Viewpoint(52.2207242, 21.0095656, 72000.0))
+        mapView.setViewpoint(Viewpoint(52.2207242, 21.0095656, 5000.0))
     }
 
     private fun setApiKeyForApp(){
