@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         mapView.map = map
 
         // set the viewpoint, Viewpoint(latitude, longitude, scale)
-        mapView.setViewpoint(Viewpoint(34.0270, -118.8050, 72000.0))
+        mapView.setViewpoint(Viewpoint(52.2207242, 21.0095656, 5000.0))
     }
 
     private fun setApiKeyForApp(){
@@ -57,8 +57,8 @@ class MainActivity : AppCompatActivity() {
         // Note: it is not best practice to store API keys in source code. The API key is referenced
         // here for the convenience of this tutorial.
 
-        ArcGISRuntimeEnvironment.setLicense(R.string.arc_gis_license.toString())
-        ArcGISRuntimeEnvironment.setApiKey(R.string.maps_api_key.toString())
+        ArcGISRuntimeEnvironment.setLicense(getString(R.string.arc_gis_license))
+        ArcGISRuntimeEnvironment.setApiKey(getString(R.string.maps_api_key))
 
     }
 }
