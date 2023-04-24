@@ -1,7 +1,14 @@
 package pl.pw.geoapp
 
+import android.app.Activity
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
@@ -15,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
-
+    lateinit var networkRequest: NetworkRequest
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,6 +33,15 @@ class MainActivity : AppCompatActivity() {
         setupMap()
 
         loadFeatureServiceURL()
+
+        networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+            .build()
+
+        val connectivityManager=getSystemService(ConnectivityManager::class.java)
+        connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
     override fun onPause() {
@@ -43,6 +59,20 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback(){
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onUnavailable() {
+            super.onUnavailable()
+            Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT).show()
+
+        }
+    }
 
     // set up your map here. You will call this method from onCreate()
     private fun setupMap() {
