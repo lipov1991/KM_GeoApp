@@ -4,6 +4,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.lights.Light
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +13,7 @@ import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
 import com.esri.arcgisruntime.layers.FeatureLayer
 import com.esri.arcgisruntime.mapping.ArcGISMap
+import com.esri.arcgisruntime.mapping.Basemap
 import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
 import com.esri.arcgisruntime.mapping.view.MapView
@@ -32,11 +34,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         setApiKeyForApp()
 
+        setUpSensorStuff()
+
         setupMap()
 
         loadFeatureServiceURL()
-
-        setUpSensorStuff()
     }
 
     private fun setUpSensorStuff() {
@@ -53,7 +55,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
             val light = event.values[0]
-            Log.d("TAG", brightness(light))
+            val light_status = brightness(light)
+            Log.d("LIGHT_STATUS", light_status)
+            // changing map style
+            Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+            if (light_status == "Light") {
+                mapView.map.basemap = Basemap.createLightGrayCanvasVector()
+                Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+            }
+            else {
+                mapView.map.basemap = Basemap.createDarkGrayCanvasVector()
+                Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+            }
+
         }
     }
 
