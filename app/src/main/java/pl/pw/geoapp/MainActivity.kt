@@ -6,7 +6,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
 import android.util.Log
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
@@ -24,7 +23,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private var brightness: Sensor? = null
-    private lateinit var text: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
