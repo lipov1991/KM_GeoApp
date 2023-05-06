@@ -1,7 +1,13 @@
 package pl.pw.geoapp
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.TextView
+import android.util.Log
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
@@ -11,10 +17,15 @@ import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
 import com.esri.arcgisruntime.mapping.view.MapView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
+
+    private lateinit var sensorManager: SensorManager
+    private var brightness: Sensor? = null
+    private lateinit var text: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,16 +37,41 @@ class MainActivity : AppCompatActivity() {
         setupMap()
 
         loadFeatureServiceURL()
+
+        setUpSensorStuff()
     }
 
+    private fun setUpSensorStuff() {
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        brightness = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+    }
+
+    private fun brightness(brightness: Float): String {
+        return when (brightness.toInt()) {
+            in 0..50 -> "Dark"
+            else -> "Light"
+        }
+    }
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
+            val light = event.values[0]
+            Log.d("TAG", brightness(light))
+        }
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+        return
+    }
     override fun onPause() {
         mapView.pause()
         super.onPause()
+        sensorManager.unregisterListener(this)
     }
 
     override fun onResume() {
         super.onResume()
         mapView.resume()
+        sensorManager.registerListener(this, brightness, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     override fun onDestroy() {
@@ -83,4 +119,6 @@ class MainActivity : AppCompatActivity() {
         ArcGISRuntimeEnvironment.setApiKey(getString(R.string.maps_api_key))
 
     }
+
+
 }
