@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun brightness(brightness: Float): String {
         return when (brightness.toInt()) {
-            in 0..50 -> "Dark"
+            in 0..30 -> "Dark"
             else -> "Light"
         }
     }
@@ -60,14 +60,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             // changing map style
             Log.d("MAP_STYLE", (mapView.map.basemap).toString())
             if (light_status == "Light") {
-                mapView.map.basemap = Basemap.createLightGrayCanvasVector()
-                Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+                setupMap(BasemapStyle.ARCGIS_LIGHT_GRAY)
+                Log.d("MAP_STYLE", "LIGHT ($light)")
             }
             else {
-                mapView.map.basemap = Basemap.createDarkGrayCanvasVector()
-                Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+                setupMap(BasemapStyle.ARCGIS_DARK_GRAY)
+                Log.d("MAP_STYLE","DARK ($light)")
             }
-
         }
     }
 
@@ -93,10 +92,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 
     // set up your map here. You will call this method from onCreate()
-    private fun setupMap() {
+    private fun setupMap(mapstyle: BasemapStyle = BasemapStyle.ARCGIS_LIGHT_GRAY) {
 
         // create a map with the BasemapStyle streets
-        val map = ArcGISMap(BasemapStyle.ARCGIS_TOPOGRAPHIC)
+        val map = ArcGISMap(mapstyle)
 
         // set the map to be displayed in the layout's MapView
         mapView.map = map
@@ -131,6 +130,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         ArcGISRuntimeEnvironment.setApiKey(getString(R.string.maps_api_key))
 
     }
-
+    private fun getArcGISMap(mapstyle: BasemapStyle): ArcGISMap =
+        ArcGISMap(mapstyle)
 
 }
