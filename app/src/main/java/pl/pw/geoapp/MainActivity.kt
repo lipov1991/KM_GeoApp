@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .build()
 
-        val connectivityManager=getSystemService(ConnectivityManager::class.java)
+        val connectivityManager = getSystemService(ConnectivityManager::class.java)
         connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
@@ -60,16 +61,18 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-    private val networkCallback = object : ConnectivityManager.NetworkCallback(){
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
+            Log.d("networkTest", "connect")
             Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT).show()
         }
 
-        override fun onUnavailable() {
-            super.onUnavailable()
-            Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT).show()
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            Log.d("networkTest", "disconnect")
+            Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT)
+                .show()
 
         }
     }
