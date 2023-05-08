@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
-    private lateinit var networkRequest: NetworkRequest
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         setApiKeyForApp()
 
-        networkRequest = NetworkRequest.Builder()
+        val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
@@ -43,13 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) == null) {
             Toast.makeText(this@MainActivity, "Brak dostępnej sieci", Toast.LENGTH_SHORT).show()
-        } else {
-            //Toast.makeText(this@MainActivity, "Przywrócono sieć", Toast.LENGTH_SHORT).show()
         }
-
-        //setupMap()
-
-        //loadFeatureServiceURL()
     }
 
     override fun onPause() {
@@ -66,11 +59,7 @@ class MainActivity : AppCompatActivity() {
         mapView.dispose()
         super.onDestroy()
     }
-
-//    private fun observeNetworkState() {
-//
-//    }
-
+    
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
