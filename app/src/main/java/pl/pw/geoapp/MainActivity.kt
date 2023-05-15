@@ -133,4 +133,5 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun getArcGISMap(mapstyle: BasemapStyle): ArcGISMap =
         ArcGISMap(mapstyle)
 
+
 }
