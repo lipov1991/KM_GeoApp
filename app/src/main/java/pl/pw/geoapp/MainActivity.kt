@@ -1,7 +1,9 @@
 package pl.pw.geoapp
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.graphics.Point
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -19,6 +21,11 @@ import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
 import com.esri.arcgisruntime.mapping.view.MapView
 
+
+import com.esri.arcgisruntime.geometry.GeometryEngine
+import com.esri.arcgisruntime.geometry.SpatialReferences
+
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
@@ -28,7 +35,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         mapView = findViewById<MapView>(R.id.mapView)
 
+
         setApiKeyForApp()
+
+        addGraphics()
 
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -45,6 +55,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun addGraphics() {
+
+        // create a graphics overlay and add it to the graphicsOverlays property of the map view
+        val graphicsOverlay = GraphicsOverlay()
+        mapView.graphicsOverlays.add(graphicsOverlay)
+
+        // create a point geometry with a location and spatial reference
+        // Point(latitude, longitude, spatial reference)
+        val point = Point(-118.8065, 34.0005, SpatialReference.wgs84())
+
+        // create a point symbol that is an small red circle
+        val simpleMarkerSymbol = SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.red, 10f)
+
+        // create a blue outline symbol and assign it to the outline property of the simple marker symbol
+        val blueOutlineSymbol = SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.fromRgba(0, 0, 255), 2f)
+        simpleMarkerSymbol.outline = blueOutlineSymbol
+
+        // create a graphic with the point geometry and symbol
+        val pointGraphic = Graphic(point, simpleMarkerSymbol)
+
+        // add the point graphic to the graphics overlay
+        graphicsOverlay.graphics.add(pointGraphic)
+
+        // Create a polylineBuilder with a spatial reference and add three points to it.
+        // Then get the polyline from the polyline builder
+
+        // create a blue line symbol for the polyline
+        val polylineSymbol = SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.fromRgba(0, 0, 255), 3f)
+        val polylineBuilder = PolylineBuilder(SpatialReference.wgs84()) {
+            addPoint(-118.8215, 34.0139)
+            addPoint(-118.8148, 34.0080)
+            addPoint(-118.8088, 34.0016)
+        }
+        val polyline = polylineBuilder.toGeometry()
+
+        // create a polyline graphic with the polyline geometry and symbol
+        val polylineGraphic = Graphic(polyline, polylineSymbol)
+
+        // add the polyline graphic to the graphics overlay
+        graphicsOverlay.graphics.add(polylineGraphic)
+
+    }
     override fun onPause() {
         mapView.pause()
         super.onPause()
@@ -79,6 +131,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // set up your map here. You will call this method from onCreate()
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupMap() {
 
         // create a map with the BasemapStyle streets
@@ -89,6 +142,15 @@ class MainActivity : AppCompatActivity() {
 
         // set the viewpoint, Viewpoint(latitude, longitude, scale)
         mapView.setViewpoint(viewpoint)
+
+        mapView.setOnTouchListener{view, motionEvent ->
+            val point = android.graphics.Point(motionEvent.x.toInt(), motionEvent.y.toInt())
+            val mapPoint: com.esri.arcgisruntime.geometry.Point = mapView.screenToLocation(point)
+            val projectedPoint: com.esri.arcgisruntime.geometry.Point = GeometryEngine.project(mapPoint, SpatialReferences.getWgs84()) as com.esri.arcgisruntime.geometry.Point
+
+        view.performClick()
+            false
+        }
     }
 
     private fun setFeatureLayer(layer: FeatureLayer) {
