@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
+    private var activeMode = MapMode.LIGHT
 
     private lateinit var sensorManager: SensorManager
     private var brightness: Sensor? = null
@@ -40,6 +41,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         loadFeatureServiceURL()
     }
+    private fun toggleMapMode() {
+        var activeMode = if (activeMode == MapMode.LIGHT) MapMode.DARK else MapMode.LIGHT
+    }
 
     private fun setUpSensorStuff() {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -52,23 +56,31 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             else -> "Light"
         }
     }
-    override fun onSensorChanged(event: SensorEvent?) {
-        if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
-            val light = event.values[0]
-            val light_status = brightness(light)
-            Log.d("LIGHT_STATUS", light_status)
-            // changing map style
-            Log.d("MAP_STYLE", (mapView.map.basemap).toString())
-            if (light_status == "Light") {
-                setupMap(BasemapStyle.ARCGIS_LIGHT_GRAY)
-                Log.d("MAP_STYLE", "LIGHT ($light)")
-            }
-            else {
-                setupMap(BasemapStyle.ARCGIS_DARK_GRAY)
-                Log.d("MAP_STYLE","DARK ($light)")
-            }
-        }
-    }
+
+    //override fun onSensorChanged(p0: SensorEvent) {
+        //val mode = if(p0.event in 0f..30f) MapMode.DARK else MapMode.LIGHT
+        //if (mode != activeMode){
+           // activeMode = mode
+       // }
+    //}
+
+    //override fun onSensorChanged(event: SensorEvent?) {
+        //if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
+            //val light = event.values[0]
+            //val light_status = brightness(light)
+           // Log.d("LIGHT_STATUS", light_status)
+           // // changing map style
+          //  Log.d("MAP_STYLE", (mapView.map.basemap).toString())
+         //   if (light_status == "Light") {
+         //       setupMap(BasemapStyle.ARCGIS_LIGHT_GRAY)
+         //       Log.d("MAP_STYLE", "LIGHT ($light)")
+       //    }
+        //    else {
+          //      setupMap(BasemapStyle.ARCGIS_DARK_GRAY)
+          //      Log.d("MAP_STYLE","DARK ($light)")
+         //   }
+      //  }
+   // }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         return
