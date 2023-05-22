@@ -1,46 +1,48 @@
 package pl.pw.geoapp
 
+
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
-
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
+import com.esri.arcgisruntime.geometry.GeometryEngine
+import com.esri.arcgisruntime.geometry.Point
+import com.esri.arcgisruntime.geometry.SpatialReferences
 import com.esri.arcgisruntime.layers.FeatureLayer
 import com.esri.arcgisruntime.mapping.ArcGISMap
 import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
-import com.esri.arcgisruntime.mapping.view.MapView
-import com.esri.arcgisruntime.geometry.Point
-
-
-import com.esri.arcgisruntime.geometry.GeometryEngine
-import com.esri.arcgisruntime.geometry.SpatialReference
-import com.esri.arcgisruntime.geometry.SpatialReferences
 import com.esri.arcgisruntime.mapping.view.Graphic
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay
+import com.esri.arcgisruntime.mapping.view.MapView
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), View.OnTouchListener {
+
+    companion object {
+        private const val TAG = "pw.MainActivity"
+    }
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
     private lateinit var gestureDetector: GestureDetectorCompat
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,14 +66,22 @@ class MainActivity : AppCompatActivity() {
 
         gestureDetector =
             GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
+
                 override fun onLongPress(motionEvent: MotionEvent) {
+                    Log.d(TAG, "onLongPress: $motionEvent")
                     val point = android.graphics.Point(motionEvent.x.toInt(), motionEvent.y.toInt())
                     val mapPoint: Point = mapView.screenToLocation(point)
                     val projectedPoint: Point =
                         GeometryEngine.project(mapPoint, SpatialReferences.getWgs84()) as Point
                     addGraphics(projectedPoint)
                 }
+
+                override fun onDown(motionEvent: MotionEvent): Boolean {
+                    Log.d(TAG, "onDown: $motionEvent")
+                    return true
+                }
             })
+        findViewById<FrameLayout>(R.id.touchable_view).setOnTouchListener(this)
     }
 
     override fun onPause() {
@@ -92,14 +102,18 @@ class MainActivity : AppCompatActivity() {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-            Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT).show()
-            setupMap()
-            loadFeatureServiceURL()
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT).show()
+                setupMap()
+                loadFeatureServiceURL()
+            }
         }
 
         override fun onLost(network: Network) {
             super.onLost(network)
-            Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT).show()
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -196,9 +210,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(event)
-        return super.onTouchEvent(event)
-    }
-
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouch(view: View?, motionEvent: MotionEvent?): Boolean = gestureDetector.onTouchEvent(motionEvent)
 }
