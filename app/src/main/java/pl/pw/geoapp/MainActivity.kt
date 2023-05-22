@@ -65,16 +65,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
             if (light_status != activeMode && light_status == "Dark"){
                 activeMode = light_status
-                setupMap(BasemapStyle.ARCGIS_DARK_GRAY)
-                loadFeatureServiceURL() //dodane, żeby wyświetlały się też warstwy po zmianie trybu light/dark
+                //var basemap = Basemap(BasemapStyle.ARCGIS_DARK_GRAY);
+                //mapView.map.basemap = basemap
+                changeMapStyle(BasemapStyle.ARCGIS_DARK_GRAY)
             }
             else if (light_status != activeMode && light_status == "Light"){
                 activeMode = light_status
-                setupMap(BasemapStyle.ARCGIS_LIGHT_GRAY)
-                loadFeatureServiceURL() //dodane, żeby wyświetlały się też warstwy po zmianie trybu light/dark
+                //var basemap = Basemap(BasemapStyle.ARCGIS_LIGHT_GRAY);
+                //mapView.map.basemap = basemap
+                changeMapStyle(BasemapStyle.ARCGIS_LIGHT_GRAY)
             }
         }
     }
+    private fun changeMapStyle(mapStyle:BasemapStyle) {
+        val basemap = Basemap(mapStyle)
+        mapView.map.basemap = basemap
+    }
+
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         return
