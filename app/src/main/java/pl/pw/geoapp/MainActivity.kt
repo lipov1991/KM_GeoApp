@@ -66,10 +66,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             if (light_status != activeMode && light_status == "Dark"){
                 activeMode = light_status
                 setupMap(BasemapStyle.ARCGIS_DARK_GRAY)
+                loadFeatureServiceURL() //dodane, żeby wyświetlały się też warstwy po zmianie trybu light/dark
             }
             else if (light_status != activeMode && light_status == "Light"){
                 activeMode = light_status
                 setupMap(BasemapStyle.ARCGIS_LIGHT_GRAY)
+                loadFeatureServiceURL() //dodane, żeby wyświetlały się też warstwy po zmianie trybu light/dark
             }
         }
     }
