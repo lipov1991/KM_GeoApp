@@ -4,11 +4,9 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.lights.Light
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-
+import androidx.appcompat.app.AppCompatActivity
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
 import com.esri.arcgisruntime.layers.FeatureLayer
@@ -22,7 +20,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
-    private var activeMode = "Light"
+    private var activeMode = "Lig8*6ht"
 
     private lateinit var sensorManager: SensorManager
     private var brightness: Sensor? = null
@@ -65,14 +63,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
             if (light_status != activeMode && light_status == "Dark"){
                 activeMode = light_status
-                //var basemap = Basemap(BasemapStyle.ARCGIS_DARK_GRAY);
-                //mapView.map.basemap = basemap
                 changeMapStyle(BasemapStyle.ARCGIS_DARK_GRAY)
             }
             else if (light_status != activeMode && light_status == "Light"){
                 activeMode = light_status
-                //var basemap = Basemap(BasemapStyle.ARCGIS_LIGHT_GRAY);
-                //mapView.map.basemap = basemap
                 changeMapStyle(BasemapStyle.ARCGIS_LIGHT_GRAY)
             }
         }
@@ -143,8 +137,4 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         ArcGISRuntimeEnvironment.setApiKey(getString(R.string.maps_api_key))
 
     }
-    private fun getArcGISMap(mapstyle: BasemapStyle): ArcGISMap =
-        ArcGISMap(mapstyle)
-
-
 }
