@@ -28,6 +28,7 @@ import com.esri.arcgisruntime.mapping.view.GraphicsOverlay
 import com.esri.arcgisruntime.mapping.view.MapView
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol
+import com.esri.arcgisruntime.symbology.Symbol
 
 
 class MainActivity : AppCompatActivity(), View.OnTouchListener {
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
     private lateinit var gestureDetector: GestureDetectorCompat
+
     //private val graphicsOverlay = GraphicsOverlay()
     private val addedPointsCollection = PointCollection(SpatialReferences.getWgs84())
 
@@ -83,7 +85,7 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
                 override fun onDown(motionEvent: MotionEvent): Boolean {
                     Log.d(TAG, "onDown: $motionEvent")
-                    return true
+                    return false
                 }
             })
 
@@ -165,46 +167,31 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
     }
 
     private fun addPoint(point: Point) {
-
-        // create a graphics overlay and add it to the graphicsOverlays property of the map view
-        val graphicsOverlay = GraphicsOverlay()
-        mapView.graphicsOverlays.add(graphicsOverlay)
-
-        // create a point geometry with a location and spatial reference
-        // Point(latitude, longitude, spatial reference)
-        //val point = Point(-118.8065, 34.0005, SpatialReferences.getWgs84())
-
         // create a point symbol that is an small red circle
-        val simpleMarkerSymbol = SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.RED, 10f)
+        val simpleMarkerSymbol = SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.RED, 10f).apply {
+            // create a blue outline symbol and assign it to the outline property of the simple marker symbol
+            outline = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.rgb(0, 0, 255), 2f)
+        }
+        addOverlay(point, simpleMarkerSymbol)
+    }
 
-        // create a blue outline symbol and assign it to the outline property of the simple marker symbol
-        val blueOutlineSymbol =
-            SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.rgb(0, 0, 255), 2f)
-        simpleMarkerSymbol.outline = blueOutlineSymbol
-
-        // create a graphic with the point geometry and symbol
-        val pointGraphic = Graphic(point, simpleMarkerSymbol)
-
-        // add the point graphic to the graphics overlay
-        graphicsOverlay.graphics.add(pointGraphic)
+    private fun addOverlay(geometry: Geometry, symbol: Symbol) {
+        // create a graphics overlay and add it to the graphicsOverlays property of the map view
+        val pointGraphic = Graphic(geometry, symbol)
+        val graphicsOverlay = GraphicsOverlay().apply {
+            graphics.add(pointGraphic)
+        }
+        mapView.graphicsOverlays.add(graphicsOverlay)
     }
 
     private fun addPolyline(pointCollection: PointCollection) {
-        val graphicsOverlay = GraphicsOverlay()
-        // Create a polylineBuilder with a spatial reference and add three points to it.
-        // Then get the polyline from the polyline builder
-
         // create a blue line symbol for the polyline
         val polylineSymbol = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3f)
-
+        // Create a polylineBuilder with a spatial reference and add three points to it.
         val polylineBuilder = PolylineBuilder(pointCollection, SpatialReferences.getWgs84())
+        // Then get the polyline from the polyline builder
         val polyline = polylineBuilder.toGeometry()
-
-//        // create a polyline graphic with the polyline geometry and symbol
-        val polylineGraphic = Graphic(polyline, polylineSymbol)
-
-//        // add the polyline graphic to the graphics overlay
-        graphicsOverlay.graphics.add(polylineGraphic)
+        addOverlay(polyline, polylineSymbol)
     }
 
     @SuppressLint("ClickableViewAccessibility")
