@@ -39,9 +39,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         loadFeatureServiceURL()
     }
-//    private fun toggleMapMode() {
-//        var activeMode = if (activeMode == MapMode.LIGHT) MapMode.DARK else MapMode.LIGHT
-//    }
 
     private fun setUpSensorStuff() {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
