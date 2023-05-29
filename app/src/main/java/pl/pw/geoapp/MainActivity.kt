@@ -18,9 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
-import com.esri.arcgisruntime.geometry.GeometryEngine
-import com.esri.arcgisruntime.geometry.Point
-import com.esri.arcgisruntime.geometry.SpatialReferences
+import com.esri.arcgisruntime.geometry.*
 import com.esri.arcgisruntime.layers.FeatureLayer
 import com.esri.arcgisruntime.mapping.ArcGISMap
 import com.esri.arcgisruntime.mapping.BasemapStyle
@@ -41,6 +39,8 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
     private lateinit var gestureDetector: GestureDetectorCompat
+    //private val graphicsOverlay = GraphicsOverlay()
+    private val addedPointsCollection = PointCollection(SpatialReferences.getWgs84())
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +73,12 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
                     val mapPoint: Point = mapView.screenToLocation(point)
                     val projectedPoint: Point =
                         GeometryEngine.project(mapPoint, SpatialReferences.getWgs84()) as Point
-                    addGraphics(projectedPoint)
+                    addPoint(projectedPoint)
+                    addedPointsCollection.add(projectedPoint.x, projectedPoint.y)
+                    Log.d(TAG, "pointsCollection: ${addedPointsCollection.size}")
+                    if (addedPointsCollection.size == 2) {
+                        addPolyline(addedPointsCollection)
+                    }
                 }
 
                 override fun onDown(motionEvent: MotionEvent): Boolean {
@@ -81,6 +86,7 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
                     return true
                 }
             })
+
         findViewById<FrameLayout>(R.id.touchable_view).setOnTouchListener(this)
     }
 
@@ -129,14 +135,6 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
         // set the viewpoint, Viewpoint(latitude, longitude, scale)
         mapView.setViewpoint(viewpoint)
-
-//        mapView.setOnTouchListener{view, motionEvent ->
-//            val point = android.graphics.Point(motionEvent.x.toInt(), motionEvent.y.toInt())
-//            val mapPoint: Point = mapView.screenToLocation(point)
-//            val projectedPoint: Point = GeometryEngine.project(mapPoint, SpatialReferences.getWgs84()) as Point
-//            addGraphics(projectedPoint)
-//            false
-//        }
     }
 
     private fun setFeatureLayer(layer: FeatureLayer) {
@@ -166,7 +164,7 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
     }
 
-    private fun addGraphics(point: Point) {
+    private fun addPoint(point: Point) {
 
         // create a graphics overlay and add it to the graphicsOverlays property of the map view
         val graphicsOverlay = GraphicsOverlay()
@@ -189,25 +187,24 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
         // add the point graphic to the graphics overlay
         graphicsOverlay.graphics.add(pointGraphic)
+    }
 
+    private fun addPolyline(pointCollection: PointCollection) {
+        val graphicsOverlay = GraphicsOverlay()
         // Create a polylineBuilder with a spatial reference and add three points to it.
         // Then get the polyline from the polyline builder
 
         // create a blue line symbol for the polyline
-//        val polylineSymbol = SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.fromRgba(0, 0, 255), 3f)
-//        val polylineBuilder = PolylineBuilder(SpatialReference.wgs84()) {
-//            addPoint(-118.8215, 34.0139)
-//            addPoint(-118.8148, 34.0080)
-//            addPoint(-118.8088, 34.0016)
-//        }
-//        val polyline = polylineBuilder.toGeometry()
-//
-//        // create a polyline graphic with the polyline geometry and symbol
-//        val polylineGraphic = Graphic(polyline, polylineSymbol)
-//
-//        // add the polyline graphic to the graphics overlay
-//        graphicsOverlay.graphics.add(polylineGraphic)
+        val polylineSymbol = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3f)
 
+        val polylineBuilder = PolylineBuilder(pointCollection, SpatialReferences.getWgs84())
+        val polyline = polylineBuilder.toGeometry()
+
+//        // create a polyline graphic with the polyline geometry and symbol
+        val polylineGraphic = Graphic(polyline, polylineSymbol)
+
+//        // add the polyline graphic to the graphics overlay
+        graphicsOverlay.graphics.add(polylineGraphic)
     }
 
     @SuppressLint("ClickableViewAccessibility")
