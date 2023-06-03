@@ -2,25 +2,47 @@ package pl.pw.geoapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
+import android.view.View
+import android.widget.Toast
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.mapping.ArcGISMap
 import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
 import com.esri.arcgisruntime.mapping.view.MapView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
+    private var clicked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
         setContentView(R.layout.activity_main)
         mapView = findViewById<MapView>(R.id.mapView)
 
         setApiKeyForApp()
 
         setupMap()
+
+        // floating buttons to change map style
+        binding.layers_button.setOnClickListener{
+            onLayersBtnClicked()
+        }
+
+        binding.topo_style_button.setOnClickListener{
+            Toast.makeText(this, "topoStyleBtn clicked", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.sat_img_style_button.setOnClickListener{
+            Toast.makeText(this, "satImgStyleBtn clicked", Toast.LENGTH_SHORT).show()
+        }
+
     }
 //hello
     override fun onPause() {
@@ -61,4 +83,24 @@ class MainActivity : AppCompatActivity() {
         ArcGISRuntimeEnvironment.setApiKey(R.string.maps_api_key.toString())
 
     }
+
+
+    //function which changes var clicked status (true/false)
+    private fun onLayersBtnClicked() {
+        setVisibility(clicked)
+        clicked = !clicked
+    }
+
+    //function which makes style buttons visible/invisible
+    private fun setVisibility(clicked: Boolean) {
+        if(!clicked){
+            topo_style_button.visibility = View.VISIBLE
+            sat_img_style_button.visibility = View.VISIBLE
+        }else{
+            topo_style_button.visibility = View.INVISIBLE
+            sat_img_style_button.visibility = View.INVISIBLE
+        }
+    }
+
+
 }

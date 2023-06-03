@@ -6,6 +6,8 @@ plugins {
 android {
     namespace 'pl.pw.geoapp'
     compileSdk 33
+    }
+
 
     defaultConfig {
         applicationId "pl.pw.geoapp"
@@ -33,7 +35,7 @@ android {
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
     }
-}
+
 
 
 dependencies {
