@@ -2,20 +2,14 @@ package pl.pw.geoapp
 
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
-import android.util.Log
-import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.View
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GestureDetectorCompat
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
 import com.esri.arcgisruntime.data.ServiceFeatureTable
 import com.esri.arcgisruntime.geometry.*
@@ -23,15 +17,15 @@ import com.esri.arcgisruntime.layers.FeatureLayer
 import com.esri.arcgisruntime.mapping.ArcGISMap
 import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener
 import com.esri.arcgisruntime.mapping.view.Graphic
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay
 import com.esri.arcgisruntime.mapping.view.MapView
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol
-import com.esri.arcgisruntime.symbology.Symbol
+import kotlin.math.roundToInt
 
 
-class MainActivity : AppCompatActivity(), View.OnTouchListener {
+class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "pw.MainActivity"
@@ -39,10 +33,8 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
-    private lateinit var gestureDetector: GestureDetectorCompat
-
-    //private val graphicsOverlay = GraphicsOverlay()
-    private val addedPointsCollection = PointCollection(SpatialReferences.getWgs84())
+    val locationMarker = SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFF0000FF.toInt(), 10f)
+    private val wgs84 = SpatialReferences.getWgs84()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,31 +57,6 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
         if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) == null) {
             Toast.makeText(this@MainActivity, "Brak dostępnej sieci", Toast.LENGTH_SHORT).show()
         }
-
-        gestureDetector =
-            GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
-
-                override fun onLongPress(motionEvent: MotionEvent) {
-                    Log.d(TAG, "onLongPress: $motionEvent")
-                    val point = android.graphics.Point(motionEvent.x.toInt(), motionEvent.y.toInt())
-                    val mapPoint: Point = mapView.screenToLocation(point)
-                    val projectedPoint: Point =
-                        GeometryEngine.project(mapPoint, SpatialReferences.getWgs84()) as Point
-                    addPoint(projectedPoint)
-                    addedPointsCollection.add(projectedPoint.x, projectedPoint.y)
-                    Log.d(TAG, "pointsCollection: ${addedPointsCollection.size}")
-                    if (addedPointsCollection.size == 2) {
-                        addPolyline(addedPointsCollection)
-                    }
-                }
-
-                override fun onDown(motionEvent: MotionEvent): Boolean {
-                    Log.d(TAG, "onDown: $motionEvent")
-                    return false
-                }
-            })
-
-        findViewById<FrameLayout>(R.id.touchable_view).setOnTouchListener(this)
     }
 
     override fun onPause() {
@@ -137,6 +104,8 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
         // set the viewpoint, Viewpoint(latitude, longitude, scale)
         mapView.setViewpoint(viewpoint)
+
+        setUpMapOnTouchListener()
     }
 
     private fun setFeatureLayer(layer: FeatureLayer) {
@@ -166,34 +135,20 @@ class MainActivity : AppCompatActivity(), View.OnTouchListener {
 
     }
 
-    private fun addPoint(point: Point) {
-        // create a point symbol that is an small red circle
-        val simpleMarkerSymbol = SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.RED, 10f).apply {
-            // create a blue outline symbol and assign it to the outline property of the simple marker symbol
-            outline = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.rgb(0, 0, 255), 2f)
-        }
-        addOverlay(point, simpleMarkerSymbol)
-    }
-
-    private fun addOverlay(geometry: Geometry, symbol: Symbol) {
-        // create a graphics overlay and add it to the graphicsOverlays property of the map view
-        val pointGraphic = Graphic(geometry, symbol)
-        val graphicsOverlay = GraphicsOverlay().apply {
-            graphics.add(pointGraphic)
-        }
-        mapView.graphicsOverlays.add(graphicsOverlay)
-    }
-
-    private fun addPolyline(pointCollection: PointCollection) {
-        // create a blue line symbol for the polyline
-        val polylineSymbol = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3f)
-        // Create a polylineBuilder with a spatial reference and add three points to it.
-        val polylineBuilder = PolylineBuilder(pointCollection, SpatialReferences.getWgs84())
-        // Then get the polyline from the polyline builder
-        val polyline = polylineBuilder.toGeometry()
-        addOverlay(polyline, polylineSymbol)
-    }
-
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouch(view: View?, motionEvent: MotionEvent?): Boolean = gestureDetector.onTouchEvent(motionEvent)
+    private fun setUpMapOnTouchListener() {
+        mapView.onTouchListener = object : DefaultMapViewOnTouchListener(this, mapView) {
+
+            override fun onSingleTapConfirmed(motionEvent: MotionEvent): Boolean {
+                val screenStartPoint = android.graphics.Point(motionEvent.x.roundToInt(), motionEvent.y.roundToInt())
+                val mapStartPoint = mapView.screenToLocation(screenStartPoint)
+                val startPointGraphic = Graphic(mapStartPoint, locationMarker).apply {
+                    geometry = GeometryEngine.project(mapStartPoint, wgs84)
+                }
+                val graphicOverlay = GraphicsOverlay().apply { graphics. add(startPointGraphic) }
+                mapView.graphicsOverlays.add(graphicOverlay)
+                return super.onSingleTapConfirmed(motionEvent)
+            }
+        }
+    }
 }
