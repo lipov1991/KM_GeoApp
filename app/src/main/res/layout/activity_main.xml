@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -15,6 +16,8 @@
         android:id="@+id/layers_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_standard"
+        android:layout_marginTop="@dimen/margin_standard"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:backgroundTint="@color/gray_200"
@@ -30,7 +33,7 @@
         android:id="@+id/topo_style_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/layers_button"
         app:layout_constraintTop_toBottomOf="@+id/layers_button"
         android:layout_marginTop="@dimen/margin_standard"
         android:backgroundTint="@color/gray_200"
@@ -46,7 +49,7 @@
         android:id="@+id/sat_img_style_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/topo_style_button"
         app:layout_constraintTop_toBottomOf="@+id/topo_style_button"
         android:layout_marginTop="@dimen/margin_standard"
         android:backgroundTint="@color/gray_200"

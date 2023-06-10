@@ -2,45 +2,51 @@ package pl.pw.geoapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import android.widget.Toast
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
+import com.esri.arcgisruntime.data.ServiceFeatureTable
+import com.esri.arcgisruntime.layers.FeatureLayer
 import com.esri.arcgisruntime.mapping.ArcGISMap
 import com.esri.arcgisruntime.mapping.BasemapStyle
 import com.esri.arcgisruntime.mapping.Viewpoint
 import com.esri.arcgisruntime.mapping.view.MapView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.android.synthetic.main.activity_main.*
+import pl.pw.geoapp.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
     private var clicked = false
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         mapView = findViewById<MapView>(R.id.mapView)
 
         setApiKeyForApp()
 
         setupMap()
 
-        // floating buttons to change map style
-        binding.layers_button.setOnClickListener{
+        loadFeatureServiceURL()
+
+
+
+        // floating buttons to changing map style
+        binding.layersButton.setOnClickListener{
+            Toast.makeText(this, "Styles Button clicked", Toast.LENGTH_SHORT).show()
             onLayersBtnClicked()
+
         }
 
-        binding.topo_style_button.setOnClickListener{
-            Toast.makeText(this, "topoStyleBtn clicked", Toast.LENGTH_SHORT).show()
+        binding.topoStyleButton.setOnClickListener{
+            Toast.makeText(this, "topographic map", Toast.LENGTH_SHORT).show()
         }
 
-        binding.sat_img_style_button.setOnClickListener{
-            Toast.makeText(this, "satImgStyleBtn clicked", Toast.LENGTH_SHORT).show()
+        binding.satImgStyleButton.setOnClickListener{
+            Toast.makeText(this, "satellite image", Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -84,21 +90,38 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun setFeatureLayer(layer: FeatureLayer) {
+        // clears the existing layer on the map
+        mapView.map.operationalLayers.clear()
+        // adds the new layer to the map
+        mapView.map.operationalLayers.add(layer)
+    }
 
-    //function which changes var clicked status (true/false)
+    private fun loadFeatureServiceURL() {
+        // initialize the service feature table using a URL
+        val serviceFeatureTable =
+            ServiceFeatureTable(resources.getString(R.string.map_service_url))
+        // create a feature layer with the feature table
+        val featureLayer = FeatureLayer(serviceFeatureTable)
+        // set the feature layer on the map
+        setFeatureLayer(featureLayer)
+    }
+
+
+    //change var clicked status (true/false)
     private fun onLayersBtnClicked() {
         setVisibility(clicked)
         clicked = !clicked
     }
 
-    //function which makes style buttons visible/invisible
+    //make style buttons visible/invisible
     private fun setVisibility(clicked: Boolean) {
         if(!clicked){
-            topo_style_button.visibility = View.VISIBLE
-            sat_img_style_button.visibility = View.VISIBLE
+            binding.topoStyleButton.visibility = View.VISIBLE
+            binding.satImgStyleButton.visibility = View.VISIBLE
         }else{
-            topo_style_button.visibility = View.INVISIBLE
-            sat_img_style_button.visibility = View.INVISIBLE
+            binding.topoStyleButton.visibility = View.INVISIBLE
+            binding.satImgStyleButton.visibility = View.INVISIBLE
         }
     }
 
