@@ -2,12 +2,15 @@ package pl.pw.geoapp
 
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment
@@ -21,6 +24,7 @@ import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener
 import com.esri.arcgisruntime.mapping.view.Graphic
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay
 import com.esri.arcgisruntime.mapping.view.MapView
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol
 import kotlin.math.roundToInt
 
@@ -33,8 +37,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
     private val viewpoint = Viewpoint(52.2206242, 21.0099656, 2000.0)
-    val locationMarker = SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFF0000FF.toInt(), 10f)
+    val locationMarker =
+        SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFF0000FF.toInt(), 10f)
+    val polylineSymbol = SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3f)
     private val wgs84 = SpatialReferences.getWgs84()
+    private val addedPointsCollection = PointCollection(wgs84)
+    private val unitOfMeasurement = LinearUnit(LinearUnitId.METERS)
+    private val units = "Meters"
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,7 +87,8 @@ class MainActivity : AppCompatActivity() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
             runOnUiThread {
-                Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Połączono z internetem", Toast.LENGTH_SHORT)
+                    .show()
                 setupMap()
                 loadFeatureServiceURL()
             }
@@ -87,7 +97,11 @@ class MainActivity : AppCompatActivity() {
         override fun onLost(network: Network) {
             super.onLost(network)
             runOnUiThread {
-                Toast.makeText(this@MainActivity, "Brak połączenia z internetem", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@MainActivity,
+                    "Brak połączenia z internetem",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -139,14 +153,58 @@ class MainActivity : AppCompatActivity() {
     private fun setUpMapOnTouchListener() {
         mapView.onTouchListener = object : DefaultMapViewOnTouchListener(this, mapView) {
 
+            @SuppressLint("SetTextI18n")
             override fun onSingleTapConfirmed(motionEvent: MotionEvent): Boolean {
-                val screenStartPoint = android.graphics.Point(motionEvent.x.roundToInt(), motionEvent.y.roundToInt())
+                val screenStartPoint =
+                    android.graphics.Point(motionEvent.x.roundToInt(), motionEvent.y.roundToInt())
                 val mapStartPoint = mapView.screenToLocation(screenStartPoint)
                 val startPointGraphic = Graphic(mapStartPoint, locationMarker).apply {
                     geometry = GeometryEngine.project(mapStartPoint, wgs84)
                 }
-                val graphicOverlay = GraphicsOverlay().apply { graphics. add(startPointGraphic) }
+                addedPointsCollection.add(mapStartPoint.x, mapStartPoint.y)
+                //Log.d(TAG, "pointsCollection: ${addedPointsCollection.size}")
+
+                val polylineGraphic = Graphic()
+                polylineGraphic.symbol = polylineSymbol
+                val polyline = Polyline(addedPointsCollection)
+                //Log.d(TAG, "polylineExtent: ${polyline.extent}")
+                val pathGeometry = GeometryEngine.densifyGeodetic(
+                    polyline,
+                    1.0,
+                    unitOfMeasurement,
+                    GeodeticCurveType.GEODESIC
+                )
+                polylineGraphic.geometry = pathGeometry
+
+                val graphicOverlay = GraphicsOverlay().apply {
+                    graphics.add(startPointGraphic)
+                    graphics.add(polylineGraphic)
+                }
                 mapView.graphicsOverlays.add(graphicOverlay)
+
+                // calculate path distance
+                val distance =
+                    GeometryEngine.lengthGeodetic(
+                        pathGeometry,
+                        unitOfMeasurement,
+                        GeodeticCurveType.GEODESIC
+                    )
+
+                // create a textView for the callout
+                val calloutContent = TextView(applicationContext)
+                calloutContent.setTextColor(Color.BLACK)
+                calloutContent.setSingleLine()
+
+                // format coordinates to 2 decimal places
+                val distanceString = String.format("%.2f", distance)
+
+                // display distance as a callout
+                calloutContent.text = "Distance: $distanceString $units"
+                val callout = mapView.callout
+                callout.location = mapStartPoint
+                callout.content = calloutContent
+                callout.show()
+
                 return super.onSingleTapConfirmed(motionEvent)
             }
         }
